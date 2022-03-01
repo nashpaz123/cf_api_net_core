@@ -1,28 +1,32 @@
+using System.Threading.Tasks;
 using CorrelationId.Abstractions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
-namespace CF.Api.Middleware;
-
-public class LogResponseMiddleware
+namespace CF.Api.Middleware
 {
-    private readonly ICorrelationContextAccessor _correlationContext;
-    private readonly ILogger _logger;
-    private readonly RequestDelegate _next;
-
-    public LogResponseMiddleware(RequestDelegate next, ILogger<LogResponseMiddleware> logger,
-        ICorrelationContextAccessor correlationContext)
+    public class LogResponseMiddleware
     {
-        _next = next;
-        _logger = logger;
-        _correlationContext = correlationContext;
-    }
+        private readonly ICorrelationContextAccessor _correlationContext;
+        private readonly ILogger _logger;
+        private readonly RequestDelegate _next;
 
-    public async Task Invoke(HttpContext context)
-    {
-        var correlationId = _correlationContext.CorrelationContext.CorrelationId;
+        public LogResponseMiddleware(RequestDelegate next, ILogger<LogResponseMiddleware> logger,
+            ICorrelationContextAccessor correlationContext)
+        {
+            _next = next;
+            _logger = logger;
+            _correlationContext = correlationContext;
+        }
 
-        _logger.LogInformation("StatusCode: {statusCode}. (CorrelationId: {correlationId})",
-            context.Response.StatusCode, correlationId);
+        public async Task Invoke(HttpContext context)
+        {
+            var correlationId = _correlationContext.CorrelationContext.CorrelationId;
 
-        await _next(context);
+            _logger.LogInformation("StatusCode: {statusCode}. (CorrelationId: {correlationId})",
+                context.Response.StatusCode, correlationId);
+
+            await _next(context);
+        }
     }
 }

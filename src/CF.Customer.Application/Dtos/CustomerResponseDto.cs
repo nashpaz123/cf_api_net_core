@@ -1,10 +1,11 @@
-﻿namespace CF.Customer.Application.Dtos;
-
-public class CustomerResponseDto
+﻿namespace CF.Customer.Application.Dtos
 {
-    public long Id { get; set; }
-    public string Email { get; set; }
-    public string FirstName { get; set; }
-    public string Surname { get; set; }
-    public string FullName { get; set; }
+    public class CustomerResponseDto
+    {
+        public long Id { get; set; }
+        public string Email { get; set; }
+        public string FirstName { get; set; }
+        public string Surname { get; set; }
+        public string FullName { get; set; }
+    }
 }

@@ -1,62 +1,64 @@
-﻿using AutoMapper;
+﻿using System.Threading.Tasks;
+using AutoMapper;
 using CF.Customer.Application.Dtos;
 using CF.Customer.Application.Facades.Interfaces;
 using CF.Customer.Domain.Models;
 using CF.Customer.Domain.Services.Interfaces;
 
-namespace CF.Customer.Application.Facades;
-
-public class CustomerFacade : ICustomerFacade
+namespace CF.Customer.Application.Facades
 {
-    private readonly ICustomerService _customerService;
-    private readonly IMapper _mapper;
-
-    public CustomerFacade(ICustomerService customerService, IMapper mapper)
+    public class CustomerFacade : ICustomerFacade
     {
-        _customerService = customerService;
-        _mapper = mapper;
-    }
+        private readonly ICustomerService _customerService;
+        private readonly IMapper _mapper;
 
-    public async Task<PaginationDto<CustomerResponseDto>> GetListByFilterAsync(CustomerFilterDto filterDto)
-    {
-        var filter = _mapper.Map<CustomerFilter>(filterDto);
+        public CustomerFacade(ICustomerService customerService, IMapper mapper)
+        {
+            _customerService = customerService;
+            _mapper = mapper;
+        }
 
-        var result = await _customerService.GetListByFilterAsync(filter);
+        public async Task<PaginationDto<CustomerResponseDto>> GetListByFilterAsync(CustomerFilterDto filterDto)
+        {
+            var filter = _mapper.Map<CustomerFilter>(filterDto);
 
-        var paginationDto = _mapper.Map<PaginationDto<CustomerResponseDto>>(result);
+            var result = await _customerService.GetListByFilterAsync(filter);
 
-        return paginationDto;
-    }
+            var paginationDto = _mapper.Map<PaginationDto<CustomerResponseDto>>(result);
 
-    public async Task<CustomerResponseDto> GetByFilterAsync(CustomerFilterDto filterDto)
-    {
-        var filter = _mapper.Map<CustomerFilter>(filterDto);
+            return paginationDto;
+        }
 
-        var result = await _customerService.GetByFilterAsync(filter);
+        public async Task<CustomerResponseDto> GetByFilterAsync(CustomerFilterDto filterDto)
+        {
+            var filter = _mapper.Map<CustomerFilter>(filterDto);
 
-        var resultDto = _mapper.Map<CustomerResponseDto>(result);
+            var result = await _customerService.GetByFilterAsync(filter);
 
-        return resultDto;
-    }
+            var resultDto = _mapper.Map<CustomerResponseDto>(result);
 
-    public async Task UpdateAsync(long id, CustomerRequestDto customerRequestDto)
-    {
-        var customer = _mapper.Map<Domain.Entities.Customer>(customerRequestDto);
+            return resultDto;
+        }
 
-        await _customerService.UpdateAsync(id, customer);
-    }
+        public async Task UpdateAsync(long id, CustomerRequestDto customerRequestDto)
+        {
+            var customer = _mapper.Map<Domain.Entities.Customer>(customerRequestDto);
 
-    public async Task<long> CreateAsync(CustomerRequestDto customerRequestDto)
-    {
-        var customer = _mapper.Map<Domain.Entities.Customer>(customerRequestDto);
+            await _customerService.UpdateAsync(id, customer);
+        }
 
-        var id = await _customerService.CreateAsync(customer);
+        public async Task<long> CreateAsync(CustomerRequestDto customerRequestDto)
+        {
+            var customer = _mapper.Map<Domain.Entities.Customer>(customerRequestDto);
 
-        return id;
-    }
+            var id = await _customerService.CreateAsync(customer);
 
-    public async Task DeleteAsync(long id)
-    {
-        await _customerService.DeleteAsync(id);
+            return id;
+        }
+
+        public async Task DeleteAsync(long id)
+        {
+            await _customerService.DeleteAsync(id);
+        }
     }
 }

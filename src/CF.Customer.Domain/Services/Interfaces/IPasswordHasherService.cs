@@ -1,8 +1,9 @@
-﻿namespace CF.Customer.Domain.Services.Interfaces;
-
-public interface IPasswordHasherService
+﻿namespace CF.Customer.Domain.Services.Interfaces
 {
-    string Hash(string password);
+    public interface IPasswordHasherService
+    {
+        string Hash(string password);
 
-    (bool Verified, bool NeedsUpgrade) Check(string hash, string password);
+        (bool Verified, bool NeedsUpgrade) Check(string hash, string password);
+    }
 }

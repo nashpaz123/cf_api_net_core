@@ -1,10 +1,13 @@
-﻿using CF.Customer.Domain.Models;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using CF.Customer.Domain.Models;
 
-namespace CF.Customer.Domain.Repositories;
-
-public interface ICustomerRepository : IRepositoryBase<Entities.Customer>
+namespace CF.Customer.Domain.Repositories
 {
-    Task<int> CountByFilterAsync(CustomerFilter filter);
-    Task<Entities.Customer> GetByFilterAsync(CustomerFilter filter);
-    Task<List<Entities.Customer>> GetListByFilterAsync(CustomerFilter filter);
+    public interface ICustomerRepository : IRepositoryBase<Entities.Customer>
+    {
+        Task<int> CountByFilterAsync(CustomerFilter filter);
+        Task<Entities.Customer> GetByFilterAsync(CustomerFilter filter);
+        Task<List<Entities.Customer>> GetListByFilterAsync(CustomerFilter filter);
+    }
 }

@@ -1,34 +1,36 @@
-﻿using AutoMapper;
+﻿using System.Collections.Generic;
+using AutoMapper;
 using CF.Customer.Application.Dtos;
 using CF.Customer.Domain.Entities;
 using CF.Customer.Domain.Models;
 
-namespace CF.Customer.Infrastructure.Mappers;
-
-public class CustomerProfile : Profile
+namespace CF.Customer.Infrastructure.Mappers
 {
-    public CustomerProfile()
+    public class CustomerProfile : Profile
     {
-        CreateCustomerProfile();
-    }
+        public CustomerProfile()
+        {
+            CreateCustomerProfile();
+        }
 
-    private void CreateCustomerProfile()
-    {
-        CreateMap<CustomerRequestDto, Domain.Entities.Customer>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Created, opt => opt.Ignore())
-            .ForMember(dest => dest.Updated, opt => opt.Ignore());
+        private void CreateCustomerProfile()
+        {
+            CreateMap<CustomerRequestDto, Domain.Entities.Customer>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.Created, opt => opt.Ignore())
+                .ForMember(dest => dest.Updated, opt => opt.Ignore());
 
-        CreateMap<Domain.Entities.Customer, CustomerResponseDto>()
-            .ForMember(dest => dest.FullName, opt => opt.Ignore())
-            .AfterMap((source, destination) => { destination.FullName = source.GetFullName(); });
+            CreateMap<Domain.Entities.Customer, CustomerResponseDto>()
+                .ForMember(dest => dest.FullName, opt => opt.Ignore())
+                .AfterMap((source, destination) => { destination.FullName = source.GetFullName(); });
 
-        CreateMap<CustomerFilterDto, CustomerFilter>();
+            CreateMap<CustomerFilterDto, CustomerFilter>();
 
-        CreateMap<Pagination<Domain.Entities.Customer>, PaginationDto<CustomerResponseDto>>()
-            .AfterMap((source, converted, context) =>
-            {
-                converted.Result = context.Mapper.Map<List<CustomerResponseDto>>(source.Result);
-            });
+            CreateMap<Pagination<Domain.Entities.Customer>, PaginationDto<CustomerResponseDto>>()
+                .AfterMap((source, converted, context) =>
+                {
+                    converted.Result = context.Mapper.Map<List<CustomerResponseDto>>(source.Result);
+                });
+        }
     }
 }

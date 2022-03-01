@@ -1,130 +1,133 @@
-﻿using CF.Customer.Domain.Entities;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using CF.Customer.Domain.Entities;
 using CF.Customer.Domain.Exceptions;
 using CF.Customer.Domain.Models;
 using CF.Customer.Domain.Repositories;
 using CF.Customer.Domain.Services.Interfaces;
 
-namespace CF.Customer.Domain.Services;
-
-public class CustomerService : ICustomerService
+namespace CF.Customer.Domain.Services
 {
-    private readonly ICustomerRepository _customerRepository;
-    private readonly IPasswordHasherService _passwordHasherService;
-
-    public CustomerService(ICustomerRepository customerRepository, IPasswordHasherService passwordHasherService)
+    public class CustomerService : ICustomerService
     {
-        _customerRepository = customerRepository;
-        _passwordHasherService = passwordHasherService;
-    }
+        private readonly ICustomerRepository _customerRepository;
+        private readonly IPasswordHasherService _passwordHasherService;
 
-    public async Task<Pagination<Entities.Customer>> GetListByFilterAsync(CustomerFilter filter)
-    {
-        if (filter == null)
-            throw new ValidationException("Filter is null.");
-
-        if (filter.PageSize > 100)
-            throw new ValidationException("Maximum allowed page size is 100.");
-
-        if (filter.CurrentPage <= 0) filter.PageSize = 1;
-
-        var total = await _customerRepository.CountByFilterAsync(filter);
-
-        if (total == 0) return new Pagination<Entities.Customer>();
-
-        var paginateResult = await _customerRepository.GetListByFilterAsync(filter);
-
-        var result = new Pagination<Entities.Customer>
+        public CustomerService(ICustomerRepository customerRepository, IPasswordHasherService passwordHasherService)
         {
-            Count = total,
-            CurrentPage = filter.CurrentPage,
-            PageSize = filter.PageSize,
-            Result = paginateResult.ToList()
-        };
+            _customerRepository = customerRepository;
+            _passwordHasherService = passwordHasherService;
+        }
 
-        return result;
-    }
+        public async Task<Pagination<Entities.Customer>> GetListByFilterAsync(CustomerFilter filter)
+        {
+            if (filter == null)
+                throw new ValidationException("Filter is null.");
 
-    public async Task<Entities.Customer> GetByFilterAsync(CustomerFilter filter)
-    {
-        if (filter == null)
-            throw new ValidationException("Filter is null.");
+            if (filter.PageSize > 100)
+                throw new ValidationException("Maximum allowed page size is 100.");
 
-        return await _customerRepository.GetByFilterAsync(filter);
-    }
+            if (filter.CurrentPage <= 0) filter.PageSize = 1;
 
-    public async Task UpdateAsync(long id, Entities.Customer customer)
-    {
-        if (id <= 0) throw new ValidationException("Id is invalid.");
+            var total = await _customerRepository.CountByFilterAsync(filter);
 
-        if (customer == null)
-            throw new ValidationException("Customer is null.");
+            if (total == 0) return new Pagination<Entities.Customer>();
 
-        var entity = await _customerRepository.GetByIdAsync(id);
+            var paginateResult = await _customerRepository.GetListByFilterAsync(filter);
 
-        if (entity == null)
-            throw new EntityNotFoundException(id);
+            var result = new Pagination<Entities.Customer>
+            {
+                Count = total,
+                CurrentPage = filter.CurrentPage,
+                PageSize = filter.PageSize,
+                Result = paginateResult.ToList()
+            };
 
-        Validate(customer);
+            return result;
+        }
 
-        if (entity.Email != customer.Email && !await IsAvailableEmailAsync(customer.Email))
-            throw new ValidationException("Email is not available.");
+        public async Task<Entities.Customer> GetByFilterAsync(CustomerFilter filter)
+        {
+            if (filter == null)
+                throw new ValidationException("Filter is null.");
 
-        entity.Email = customer.Email;
-        entity.FirstName = customer.FirstName;
-        entity.Surname = customer.Surname;
+            return await _customerRepository.GetByFilterAsync(filter);
+        }
 
-        var (verified, _) = _passwordHasherService.Check(entity.Password, customer.Password);
-        if (!verified) entity.Password = _passwordHasherService.Hash(customer.Password);
+        public async Task UpdateAsync(long id, Entities.Customer customer)
+        {
+            if (id <= 0) throw new ValidationException("Id is invalid.");
 
-        entity.SetUpdatedDate();
-        await _customerRepository.SaveChangesAsync();
-    }
+            if (customer == null)
+                throw new ValidationException("Customer is null.");
 
-    public async Task<long> CreateAsync(Entities.Customer customer)
-    {
-        if (customer == null)
-            throw new ValidationException("Customer is null.");
+            var entity = await _customerRepository.GetByIdAsync(id);
 
-        Validate(customer);
+            if (entity == null)
+                throw new EntityNotFoundException(id);
 
-        var isAvailableEmail = await IsAvailableEmailAsync(customer.Email);
-        if (!isAvailableEmail) throw new ValidationException("Email is not available.");
+            Validate(customer);
 
-        customer.Password = _passwordHasherService.Hash(customer.Password);
-        customer.SetCreatedDate();
-        _customerRepository.Add(customer);
-        await _customerRepository.SaveChangesAsync();
+            if (entity.Email != customer.Email && !await IsAvailableEmailAsync(customer.Email))
+                throw new ValidationException("Email is not available.");
 
-        return customer.Id;
-    }
+            entity.Email = customer.Email;
+            entity.FirstName = customer.FirstName;
+            entity.Surname = customer.Surname;
 
-    public async Task DeleteAsync(long id)
-    {
-        if (id <= 0) throw new ValidationException("Id is invalid.");
+            var (verified, _) = _passwordHasherService.Check(entity.Password, customer.Password);
+            if (!verified) entity.Password = _passwordHasherService.Hash(customer.Password);
 
-        var entity = await _customerRepository.GetByIdAsync(id);
+            entity.SetUpdatedDate();
+            await _customerRepository.SaveChangesAsync();
+        }
 
-        if (entity == null) throw new EntityNotFoundException(id);
+        public async Task<long> CreateAsync(Entities.Customer customer)
+        {
+            if (customer == null)
+                throw new ValidationException("Customer is null.");
 
-        _customerRepository.Remove(entity);
+            Validate(customer);
 
-        await _customerRepository.SaveChangesAsync();
-    }
+            var isAvailableEmail = await IsAvailableEmailAsync(customer.Email);
+            if (!isAvailableEmail) throw new ValidationException("Email is not available.");
 
-    public async Task<bool> IsAvailableEmailAsync(string email)
-    {
-        var existingEmail = await _customerRepository.GetByFilterAsync(new CustomerFilter { Email = email });
-        return existingEmail == null;
-    }
+            customer.Password = _passwordHasherService.Hash(customer.Password);
+            customer.SetCreatedDate();
+            _customerRepository.Add(customer);
+            await _customerRepository.SaveChangesAsync();
 
-    private static void Validate(Entities.Customer customer)
-    {
-        customer.ValidateFirstName();
+            return customer.Id;
+        }
 
-        customer.ValidateSurname();
+        public async Task DeleteAsync(long id)
+        {
+            if (id <= 0) throw new ValidationException("Id is invalid.");
 
-        customer.ValidateEmail();
+            var entity = await _customerRepository.GetByIdAsync(id);
 
-        customer.ValidatePassword();
+            if (entity == null) throw new EntityNotFoundException(id);
+
+            _customerRepository.Remove(entity);
+
+            await _customerRepository.SaveChangesAsync();
+        }
+
+        public async Task<bool> IsAvailableEmailAsync(string email)
+        {
+            var existingEmail = await _customerRepository.GetByFilterAsync(new CustomerFilter {Email = email});
+            return existingEmail == null;
+        }
+
+        private static void Validate(Entities.Customer customer)
+        {
+            customer.ValidateFirstName();
+
+            customer.ValidateSurname();
+
+            customer.ValidateEmail();
+
+            customer.ValidatePassword();
+        }
     }
 }

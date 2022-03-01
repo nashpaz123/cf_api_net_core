@@ -1,19 +1,22 @@
-﻿namespace CF.Customer.Domain.Exceptions;
+﻿using System;
 
-/// <summary>
-///     Thrown when an entity cannot be found with a given id from the data layer
-/// </summary>
-public class ValidationException : Exception
+namespace CF.Customer.Domain.Exceptions
 {
-    public ValidationException()
+    /// <summary>
+    ///     Thrown when an entity cannot be found with a given id from the data layer
+    /// </summary>
+    public class ValidationException : Exception
     {
-    }
+        public ValidationException()
+        {
+        }
 
-    public ValidationException(string message) : base(message)
-    {
-    }
+        public ValidationException(string message) : base(message)
+        {
+        }
 
-    public ValidationException(string message, Exception innerException) : base(message, innerException)
-    {
+        public ValidationException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

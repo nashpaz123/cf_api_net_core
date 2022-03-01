@@ -1,33 +1,37 @@
-﻿using CorrelationId.Abstractions;
+﻿using System.Threading.Tasks;
+using CorrelationId.Abstractions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Extensions.Logging;
 
-namespace CF.Api.Middleware;
-
-public class LogRequestMiddleware
+namespace CF.Api.Middleware
 {
-    private readonly ICorrelationContextAccessor _correlationContext;
-    private readonly ILogger _logger;
-    private readonly RequestDelegate _next;
-
-    public LogRequestMiddleware(RequestDelegate next, ILogger<LogRequestMiddleware> logger,
-        ICorrelationContextAccessor correlationContext)
+    public class LogRequestMiddleware
     {
-        _next = next;
-        _logger = logger;
-        _correlationContext = correlationContext;
-    }
+        private readonly ICorrelationContextAccessor _correlationContext;
+        private readonly ILogger _logger;
+        private readonly RequestDelegate _next;
 
-    public async Task Invoke(HttpContext context)
-    {
-        var url = context.Request.GetDisplayUrl();
+        public LogRequestMiddleware(RequestDelegate next, ILogger<LogRequestMiddleware> logger,
+            ICorrelationContextAccessor correlationContext)
+        {
+            _next = next;
+            _logger = logger;
+            _correlationContext = correlationContext;
+        }
 
-        var correlationId = _correlationContext.CorrelationContext.CorrelationId;
+        public async Task Invoke(HttpContext context)
+        {
+            var url = context.Request.GetDisplayUrl();
 
-        _logger.LogInformation(
-            "Scheme: {scheme}, Host: {host}, Path: {path}, Method: {method}, url: {url}, correlationId: {correlationId}",
-            context.Request.Scheme, context.Request.Host, context.Request.Path, context.Request.Method, url,
-            correlationId);
+            var correlationId = _correlationContext.CorrelationContext.CorrelationId;
 
-        await _next(context);
+            _logger.LogInformation(
+                "Scheme: {scheme}, Host: {host}, Path: {path}, Method: {method}, url: {url}, correlationId: {correlationId}",
+                context.Request.Scheme, context.Request.Host, context.Request.Path, context.Request.Method, url,
+                correlationId);
+
+            await _next(context);
+        }
     }
 }
